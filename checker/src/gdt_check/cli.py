@@ -11,8 +11,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="gdt-check", description="Independently re-verify a design certificate.")
     parser.add_argument("certificate", help="certificate file (JSON)")
+    parser.add_argument("--materials", help="material library to verify the material values "
+                                            "against (e.g. data/materials.json)")
     args = parser.parse_args(argv)
-    report = check(args.certificate)
+    report = check(args.certificate, material_library=args.materials)
     print(report.summary())
     return 0 if report.passed else 1
 

@@ -17,10 +17,18 @@ __all__ = ["Check", "Report", "check"]
 __version__ = "0.1.0"
 
 
-def check(certificate: dict[str, Any] | str | Path) -> Report:
-    """Re-verify a certificate (a dict, or a path to the certificate JSON file)."""
+def check(certificate: dict[str, Any] | str | Path, *,
+          material_library: str | Path | None = None) -> Report:
+    """Re-verify a certificate (a dict, or a path to the certificate JSON file).
+
+    Pass the material library to also verify the material values the certificate used;
+    without it the report says that the material values were not verified."""
+    library = None
+    if material_library is not None:
+        with open(material_library, encoding="utf-8") as fh:
+            library = json.load(fh)
     if isinstance(certificate, dict):
-        return _check(certificate)
+        return _check(certificate, library)
     with open(certificate, encoding="utf-8") as fh:
         data: dict[str, Any] = json.load(fh)
-    return _check(data)
+    return _check(data, library)

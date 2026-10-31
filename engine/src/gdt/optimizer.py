@@ -74,10 +74,10 @@ def _project_grad(xt: FloatArray, beta: float) -> FloatArray:
 
 def run(problem: Problem, model: fem.Model, progress: Progress | None = None) -> OptimizerResult:
     n = problem.n_elements
-    free = ~problem.preserved & ~problem.keep_out
+    free = problem.free
     e0 = problem.material.youngs_modulus_MPa
     e_min = E_MIN_RATIO * e0
-    h, hs = density_filter(problem)
+    filt, filt_sum = density_filter(problem)
     target = problem.max_solid / n  # volume fraction of physical densities
 
     x = np.zeros(n)
@@ -86,7 +86,7 @@ def run(problem: Problem, model: fem.Model, progress: Progress | None = None) ->
     x[free] = (problem.max_solid - problem.preserved.sum()) / max(n_free, 1)
 
     def physical(xd: FloatArray, beta: float) -> tuple[FloatArray, FloatArray]:
-        xt = (h @ xd) / hs
+        xt = (filt @ xd) / filt_sum
         xp = _project(xt, beta)
         xp[problem.preserved] = 1.0
         xp[problem.keep_out] = 0.0
@@ -99,7 +99,7 @@ def run(problem: Problem, model: fem.Model, progress: Progress | None = None) ->
     compliance = float("nan")
     converged = interrupted = False
     it = 0
-    best_x = x.copy()
+    last_complete_x = x.copy()
     history: list[float] = []
     try:
         while it < problem.settings.max_iterations:
@@ -115,8 +115,8 @@ def run(problem: Problem, model: fem.Model, progress: Progress | None = None) ->
             dv_t = np.ones(n) * dp
             dc_t[problem.preserved | problem.keep_out] = 0.0
             dv_t[problem.preserved | problem.keep_out] = 0.0
-            dc_x = h.T @ (dc_t / hs)
-            dv_x = h.T @ (dv_t / hs)
+            dc_x = filt.T @ (dc_t / filt_sum)
+            dv_x = filt.T @ (dv_t / filt_sum)
             dc_x = np.minimum(dc_x, 0.0)
             dv_x = np.maximum(dv_x, 1e-12)
 
@@ -135,7 +135,7 @@ def run(problem: Problem, model: fem.Model, progress: Progress | None = None) ->
                     xnew = cand
             change = float(np.abs(xnew - x).max()) if n_free else 0.0
             x = xnew
-            best_x = x.copy()
+            last_complete_x = x.copy()
             if progress:
                 progress(it, compliance, float(physical(x, beta)[1].mean()), change)
             history.append(compliance)
@@ -148,7 +148,7 @@ def run(problem: Problem, model: fem.Model, progress: Progress | None = None) ->
                 break
     except KeyboardInterrupt:
         interrupted = True
-        x = best_x
+        x = last_complete_x  # an interrupt mid-iteration must not leave a half-updated x
 
     _, xp = physical(x, beta)
     # KKT residual of the final continuous design (bound-projected gradient of the Lagrangian)

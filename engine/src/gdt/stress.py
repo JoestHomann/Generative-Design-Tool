@@ -65,10 +65,7 @@ def check(problem: Problem, model: fem.Model, design: NDArray[np.bool_],
     out: dict[str, Any] = {
         "certified": False, "note": NOTE,
         "factor_of_safety": st.factor_of_safety, "fitting_factor": st.fitting_factor,
-        "allowables": None if allow is None else {
-            "yield_MPa": allow.yield_MPa, "ultimate_MPa": allow.ultimate_MPa,
-            "basis": allow.basis, "description": allow.description,
-            "is_design_allowable": allow.is_design_allowable},
+        "allowables": None if allow is None else allow.to_dict(),
         "load_cases": cases, "warnings": warnings,
     }
     if allow is not None and all("ms_yield" in c for c in cases):

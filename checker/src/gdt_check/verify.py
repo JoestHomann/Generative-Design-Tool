@@ -70,16 +70,20 @@ REQUIRED_BOUNDS = ("upper_bound_Nmm", "lower_bound_Nmm", "upper_bound_adjusted_N
                    "lower_bound_adjusted_Nmm", "gap", "target")
 
 
-def check(cert: dict[str, Any]) -> Report:
+def check(cert: dict[str, Any], library: dict[str, Any] | None = None) -> Report:
+    """Re-verify a certificate. With a material library, the material values the
+    certificate used are also checked against the library entry."""
     report = Report()
     try:
-        _check(cert, report)
+        _check(cert, report, library)
     except _Invalid as exc:
         report.add("schema", False, str(exc))
+    except (KeyError, TypeError, ValueError) as exc:
+        report.add("schema", False, f"malformed certificate: {exc!r}")
     return report
 
 
-def _check(cert: dict[str, Any], report: Report) -> None:
+def _check(cert: dict[str, Any], report: Report, library: dict[str, Any] | None) -> None:
     missing = [k for k in REQUIRED if k not in cert]
     if missing or cert.get("schema") != "gdt-certificate" or cert.get("schema_version") != 1:
         raise _Invalid(f"not a version-1 gdt certificate (missing: {', '.join(missing) or '-'})")
@@ -100,7 +104,19 @@ def _check(cert: dict[str, Any], report: Report) -> None:
         return
     report.add("setup", True, f"{mesh.nx} x {mesh.ny} square elements of {mesh.h:g} mm")
 
+    if not _check_material(cert["setup"]["material"], cert["material"], library, report):
+        return
     design = _decode_bits(cert["design"]["data"], mesh.n_el)
+    mat = cert["material"]
+    n_solid = int(design.sum())
+    mass = n_solid * mesh.h ** 2 * mesh.t * 1e-9 * float(mat["density_kg_m3"])
+    summary = cert["design"]
+    report.add("design summary",
+               summary.get("solid_elements") == n_solid
+               and _close(mass, float(summary.get("mass_kg", float("nan"))))
+               and _close(n_solid / mesh.n_el, float(summary.get("volume_fraction", float("nan")))),
+               f"{n_solid} solid elements, mass {mass:.6g} kg (certificate "
+               f"{summary.get('solid_elements')} elements, {summary.get('mass_kg')} kg)")
     budget = cert["setup"]["material_budget"]
     max_solid = math.floor(budget * mesh.n_el + 1e-9)
     report.add("material budget", int(design.sum()) <= max_solid,
@@ -111,7 +127,6 @@ def _check(cert: dict[str, Any], report: Report) -> None:
     report.add("keep-out regions", not bool(design[mesh.keep_out].any()),
                f"{int((mesh.keep_out & design).sum())} solid elements inside keep-out regions")
 
-    mat = cert["material"]
     fe = _FE(mesh, float(mat["youngs_modulus_MPa"]), float(mat["poissons_ratio"]))
     try:
         ub, ub_res = fe.compliance(design.astype(float))
@@ -147,6 +162,36 @@ def _check(cert: dict[str, Any], report: Report) -> None:
                and t.get("stretch_met") == (gap <= STRETCH_GAP),
                f"gap {100 * gap:.2f} %: target {'met' if gap <= TARGET_GAP else 'not met'}, "
                f"stretch {'met' if gap <= STRETCH_GAP else 'not met'}")
+
+
+def _check_material(spec: dict[str, Any], used: dict[str, Any],
+                    library: dict[str, Any] | None, report: Report) -> bool:
+    """The certificate's material must be the one the setup names, with matching values."""
+    keys = (("youngs_modulus_MPa", 1000.0), ("poissons_ratio", 1.0), ("density_kg_m3", 1.0))
+    if "custom" in spec:
+        c = spec["custom"]
+        expected = {"youngs_modulus_MPa": float(c["youngs_modulus_GPa"]) * 1000.0,
+                    "poissons_ratio": float(c["poissons_ratio"]),
+                    "density_kg_m3": float(c["density_kg_m3"])}
+        ok = all(_close(float(used[k]), v) for k, v in expected.items())
+        return report.add("material", ok, "custom material values match the setup" if ok else
+                          "material values differ from the custom material in the setup")
+    if used.get("id") != spec.get("id"):
+        return report.add("material", False, f"setup names material {spec.get('id')!r}, "
+                                             f"certificate used {used.get('id')!r}")
+    if library is None:
+        return report.add("material", True, f"{used['id']}: values not verified (no material "
+                                            f"library given)")
+    entry = next((m for m in library.get("materials", []) if m.get("id") == spec["id"]), None)
+    if entry is None:
+        return report.add("material", False, f"{spec['id']!r} is not in the material library")
+    lib = {"youngs_modulus_MPa": float(entry["youngs_modulus"]["value"]) * 1000.0,
+           "poissons_ratio": float(entry["poissons_ratio"]["value"]),
+           "density_kg_m3": float(entry["density"]["value"])}
+    bad = [k for k, _ in keys if not _close(float(used[k]), lib[k])]
+    return report.add("material", not bad,
+                      f"{used['id']}: values match the library" if not bad
+                      else f"{used['id']}: {', '.join(bad)} differ from the library")
 
 
 def _close(a: float, b: float) -> bool:

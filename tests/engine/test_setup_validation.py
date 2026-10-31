@@ -62,3 +62,15 @@ def test_all_problems_are_reported_at_once() -> None:
     issues = issues_of(s)
     assert any("material_budget" in i for i in issues)
     assert any(i.startswith("supports") for i in issues)
+
+
+def test_unknown_material_field_is_rejected() -> None:
+    s = with_changes(cantilever(), material={"id": "ti-6al-4v", "temper": "STA"})
+    assert any("material.temper" in i and "unknown" in i for i in issues_of(s))
+
+
+def test_support_entirely_inside_keep_out_region_is_rejected() -> None:
+    s = cantilever()
+    s["keep_out_regions"] = [{"shape": "rect", "x_mm": 0.0, "y_mm": 0.0,
+                              "width_mm": 4.0, "height_mm": 40.0}]
+    assert any("supports[0]" in i and "keep-out" in i for i in issues_of(s))

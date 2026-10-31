@@ -80,3 +80,28 @@ def test_benchmark_bounds_are_ordered_and_gap_is_reported(setup: dict) -> None:
     assert b["gap"] == pytest.approx(expected, rel=1e-12)
     assert b["target"]["met"] == (b["gap"] <= 0.05)
     assert b["target"]["stretch_met"] == (b["gap"] <= 0.02)
+
+
+# Gaps measured when phase 1 was built (2026-10-31). Almost all of each gap is the
+# relaxation gap of the convex lower bound (risk R1), not a weak design. A rise above these
+# baselines (plus 2 points of slack) means the optimizer or binarization got worse.
+GAP_BASELINES = [
+    ("cantilever 30x15", cantilever(nx=30, ny=15), 0.3203),
+    ("cantilever 40x20", cantilever(nx=40, ny=20), 0.2057),
+    ("mbb 60x20", mbb_beam(nx=60, ny=20), 0.1518),
+]
+
+
+@pytest.mark.parametrize("name,setup,baseline", GAP_BASELINES, ids=[g[0] for g in GAP_BASELINES])
+def test_gap_stays_within_recorded_baseline(name: str, setup: dict, baseline: float) -> None:
+    b = gdt.optimize(setup).certificate["bounds"]
+    assert b["gap"] <= baseline + 0.02, f"{name}: gap {b['gap']:.4f}, baseline {baseline:.4f}"
+
+
+@pytest.mark.parametrize("setup", [cantilever(nx=30, ny=15), cantilever(nx=40, ny=20)],
+                         ids=["30x15", "40x20"])
+def test_binary_design_is_as_stiff_as_the_continuous_optimum(setup: dict) -> None:
+    """Turning densities into a 0/1 design must not throw away load paths."""
+    cert = gdt.optimize(setup).certificate
+    continuous = cert["optimizer"]["final_continuous_compliance_Nmm"]
+    assert cert["bounds"]["upper_bound_Nmm"] <= 1.10 * continuous

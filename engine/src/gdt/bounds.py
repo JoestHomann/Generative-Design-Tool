@@ -51,9 +51,7 @@ class LowerBound:
 def bound_from_energy(problem: Problem, work: float, energy: FloatArray) -> float:
     """sum_k w_k 2 f_k^T u_k  minus  the largest budget-feasible sum of E0 * energy."""
     a = problem.material.youngs_modulus_MPa * energy
-    free = ~problem.preserved & ~problem.keep_out
-    room = problem.max_solid - int(problem.preserved.sum())
-    top = np.sort(a[free])[::-1][:max(room, 0)]
+    top = np.sort(a[problem.free])[::-1][:max(problem.room, 0)]
     return float(work - a[problem.preserved].sum() - top.sum())
 
 

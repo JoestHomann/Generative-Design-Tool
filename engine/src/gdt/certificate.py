@@ -102,7 +102,12 @@ def build(problem: Problem, model: fem.Model, binary: Binary,
         "relaxed_compliance_Nmm": lb.relaxed_compliance,
         "iterations": lb.iterations,
     }
-    if not np.isfinite(lb.value) or lb.value <= 0:
+    if worst_residual > fem.MAX_RELATIVE_RESIDUAL:
+        cert["bounds"] = {"status": "no bound established", "upper_bound_Nmm": ub,
+                          "reason": f"a linear solve reached only a relative residual of "
+                                    f"{worst_residual:.1e}; at most "
+                                    f"{fem.MAX_RELATIVE_RESIDUAL:.0e} is required"}
+    elif not np.isfinite(lb.value) or lb.value <= 0:
         cert["bounds"] = {"status": "no bound established", "upper_bound_Nmm": ub,
                           "reason": "the relaxed problem gave no positive lower bound"}
     else:
@@ -132,8 +137,6 @@ def _material(problem: Problem) -> dict[str, Any]:
         "id": m.id, "name": m.name,
         "youngs_modulus_MPa": m.youngs_modulus_MPa, "poissons_ratio": m.poissons_ratio,
         "density_kg_m3": m.density_kg_m3,
-        "allowables": None if a is None else {
-            "yield_MPa": a.yield_MPa, "ultimate_MPa": a.ultimate_MPa, "basis": a.basis,
-            "description": a.description, "is_design_allowable": a.is_design_allowable},
+        "allowables": None if a is None else a.to_dict(),
         "sources": m.sources, "warnings": list(m.warnings),
     }

@@ -81,7 +81,22 @@ class Problem:
     @property
     def max_solid(self) -> int:
         """Largest number of solid elements the material budget allows."""
-        return math.floor(self.budget * self.n_elements + 1e-9)
+        return max_solid_elements(self.budget, self.n_elements)
+
+    @property
+    def free(self) -> NDArray[np.bool_]:
+        """Elements the optimizer may fill or empty (neither preserved nor keep-out)."""
+        out: NDArray[np.bool_] = ~self.preserved & ~self.keep_out
+        return out
+
+    @property
+    def room(self) -> int:
+        """Solid elements the budget leaves after the preserved regions."""
+        return self.max_solid - int(self.preserved.sum())
+
+
+def max_solid_elements(budget: float, n_elements: int) -> int:
+    return math.floor(budget * n_elements + 1e-9)
 
 
 _TOP_KEYS = {
@@ -140,10 +155,23 @@ def parse(raw: dict[str, Any], library: dict[str, Any]) -> Problem:
         raise SetupError([f"mesh: elements must be square, but width/nx = {width / nx:g} mm "
                           f"and height/ny = {height / ny:g} mm"])
 
-    try:
-        material = mat.resolve(raw["material"], library)
-    except mat.MaterialError as exc:
-        raise SetupError([str(exc)]) from None
+    mspec = raw["material"]
+    material_issues: list[str] = []
+    if isinstance(mspec, dict) and "custom" in mspec:
+        _check_keys(mspec, {"custom": True}, "material", material_issues)
+        _check_keys(mspec["custom"], {"name": True, "youngs_modulus_GPa": True,
+                                      "poissons_ratio": True, "density_kg_m3": True,
+                                      "yield_MPa": False, "ultimate_MPa": False},
+                    "material.custom", material_issues)
+    else:
+        _check_keys(mspec, {"id": True, "allowable": False}, "material", material_issues)
+    if not material_issues:
+        try:
+            material = mat.resolve(raw["material"], library)
+        except mat.MaterialError as exc:
+            material_issues.append(str(exc))
+    if material_issues:
+        raise SetupError(issues + material_issues)
 
     h = width / nx
     cx = (np.arange(nx) + 0.5) * h
@@ -197,7 +225,9 @@ def parse(raw: dict[str, Any], library: dict[str, Any]) -> Problem:
         if not inside.any():
             issues.append(f"{name}: covers no node of the mesh")
             continue
-        if not (inside & node_ok).any():
+        if not node_ok[inside].any():
+            # Nodes over empty keep-out space carry no material, so a support covering
+            # some of them only acts on the remaining nodes. Entirely inside is an error.
             issues.append(f"{name}: lies entirely inside keep-out regions")
             continue
         nodes = np.flatnonzero(inside & node_ok)
@@ -224,7 +254,7 @@ def parse(raw: dict[str, Any], library: dict[str, Any]) -> Problem:
 
     if not issues:
         _check_rigid_body(usable, fixed, load_cases, nx, ny, h, issues)
-    if preserved.sum() > math.floor(budget * nx * ny + 1e-9):
+    if preserved.sum() > max_solid_elements(budget, nx * ny):
         issues.append(f"material_budget: preserved regions alone need "
                       f"{preserved.sum() / (nx * ny):.3f} of the envelope, more than the budget "
                       f"{budget:g}")

@@ -72,8 +72,12 @@ def markdown(cert: dict[str, Any]) -> str:
         lines += ["", "## Stress check", "", f"*{sc['note']}*", ""]
         a = sc["allowables"]
         if a:
+            source_note = (" MIL-HDBK-5J is superseded by MMPDS; these margins are not valid "
+                           "for certification." if "MIL-HDBK-5J" in a["description"] else "")
             lines += [f"Allowables: yield {a['yield_MPa']:.1f} MPa, ultimate "
-                      f"{a['ultimate_MPa']:.1f} MPa ({a['description']}).", ""]
+                      f"{a['ultimate_MPa']:.1f} MPa ({a['description']}).{source_note}", "",
+                      "Yield is checked at limit load and ultimate at ultimate load "
+                      "(limit × factor of safety).", ""]
         lines += [f"Factor of safety {sc['factor_of_safety']}, fitting factor "
                   f"{sc['fitting_factor']} in preserved regions.", "",
                   "| Load case | Max von Mises at limit load | Location | MS yield | MS ultimate |",

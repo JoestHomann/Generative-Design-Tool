@@ -20,6 +20,11 @@ class Allowables:
     description: str
     is_design_allowable: bool
 
+    def to_dict(self) -> dict[str, Any]:
+        return {"yield_MPa": self.yield_MPa, "ultimate_MPa": self.ultimate_MPa,
+                "basis": self.basis, "description": self.description,
+                "is_design_allowable": self.is_design_allowable}
+
 
 @dataclass(frozen=True)
 class Material:

@@ -28,25 +28,42 @@ def binarize(problem: Problem, model: fem.Model, density: NDArray[np.float64]) -
     the densest free element that touches the part. Growth keeps the design connected
     where the densities are grey; for a near-binary density field both agree.
     """
-    e0 = problem.material.youngs_modulus_MPa
     best: Binary | None = None
     best_c = np.inf
     for candidate in (_threshold(problem, density), _grow(problem, density)):
-        b = clean(problem, candidate)
-        if not b.feasible:
-            if best is None:
-                best = b
-            continue
-        c = model.compliance(model.solve(b.design.astype(float) * e0))
-        if c < best_c:
-            best, best_c = b, c
+        # Members that meet only at a corner node still carry load through that node, so
+        # try keeping corner-connected material first; edge-only cleaning is the fallback
+        # that can never leave a hinge mechanism behind.
+        for corners in (True, False):
+            b = clean(problem, candidate, corners)
+            if not b.feasible:
+                if best is None:
+                    best = b
+                continue
+            c = _compliance_if_solvable(problem, model, b.design)
+            if c < best_c:
+                best, best_c = b, c
     assert best is not None
     return best
 
 
+def _compliance_if_solvable(problem: Problem, model: fem.Model,
+                            design: NDArray[np.bool_]) -> float:
+    """Compliance of a binary design, or infinity if its stiffness matrix is singular."""
+    try:
+        with np.errstate(all="ignore"):
+            sol = model.solve(design.astype(float) * problem.material.youngs_modulus_MPa)
+    except RuntimeError:  # SuperLU: factor is exactly singular
+        return float("inf")
+    c = model.compliance(sol)
+    if not np.isfinite(c) or not sol.max_relative_residual <= fem.MAX_RELATIVE_RESIDUAL:
+        return float("inf")
+    return c
+
+
 def _threshold(problem: Problem, density: NDArray[np.float64]) -> NDArray[np.bool_]:
-    free = ~problem.preserved & ~problem.keep_out
-    k = min(problem.max_solid - int(problem.preserved.sum()), int(free.sum()))
+    free = problem.free
+    k = min(problem.room, int(free.sum()))
     idx = np.flatnonzero(free)
     design = problem.preserved.copy()
     design[idx[np.argsort(-density[idx], kind="stable")][:k]] = True
@@ -55,8 +72,8 @@ def _threshold(problem: Problem, density: NDArray[np.float64]) -> NDArray[np.boo
 
 def _grow(problem: Problem, density: NDArray[np.float64]) -> NDArray[np.bool_]:
     nx, ny = problem.nx, problem.ny
-    free = ~problem.preserved & ~problem.keep_out
-    budget = min(problem.max_solid - int(problem.preserved.sum()), int(free.sum()))
+    free = problem.free
+    budget = min(problem.room, int(free.sum()))
     design = problem.preserved.copy()
     supported = problem.fixed[0::2] | problem.fixed[1::2]
     loaded = np.zeros(problem.n_dofs // 2, dtype=bool)
@@ -71,11 +88,8 @@ def _grow(problem: Problem, density: NDArray[np.float64]) -> NDArray[np.bool_]:
             heapq.heappush(heap, (-float(density[e]), e))
 
     def push_neighbours(e: int) -> None:
-        i, j = e % nx, e // nx
-        for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            a, b = i + di, j + dj
-            if 0 <= a < nx and 0 <= b < ny:
-                push(b * nx + a)
+        for n in topology.neighbours(e, nx, ny):
+            push(n)
 
     added = 0
     # first connect every loaded node to the supports along the densest route
@@ -130,15 +144,11 @@ def _densest_path(starts: list[int], targets: NDArray[np.bool_], usable: NDArray
             while prev[path[-1]] >= 0:
                 path.append(int(prev[path[-1]]))
             return path
-        i, j = e % nx, e // nx
-        for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            a, b = i + di, j + dj
-            if 0 <= a < nx and 0 <= b < ny:
-                n = b * nx + a
-                if usable[n] and d + cost[n] < dist[n]:
-                    dist[n] = d + cost[n]
-                    prev[n] = e
-                    heapq.heappush(heap, (float(dist[n]), n))
+        for n in topology.neighbours(e, nx, ny):
+            if usable[n] and d + cost[n] < dist[n]:
+                dist[n] = d + cost[n]
+                prev[n] = e
+                heapq.heappush(heap, (float(dist[n]), n))
     return []
 
 
@@ -151,10 +161,12 @@ def _elements_at(node: int, nx: int, ny: int) -> list[int]:
     return out
 
 
-def clean(problem: Problem, design: NDArray[np.bool_]) -> Binary:
+def clean(problem: Problem, design: NDArray[np.bool_], corners: bool = False) -> Binary:
+    """Remove solid groups that carry no load and check that every load is held.
+    Groups connect through shared edges, and also through corner nodes if ``corners``."""
     design = design.copy()
     forces = [lc.force for lc in problem.load_cases]
-    label = topology.components(design, problem.nx, problem.ny)
+    label = topology.components(design, problem.nx, problem.ny, corners)
     issues: list[str] = []
     removed = 0
     for comp in range(int(np.max(label, initial=-1)) + 1):

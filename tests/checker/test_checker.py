@@ -72,6 +72,14 @@ def shrink_budget(c: dict[str, Any]) -> None:
     c["setup"]["material_budget"] *= 0.9
 
 
+def swap_material_id(c: dict[str, Any]) -> None:
+    c["setup"]["material"]["id"] = "al-7075-t6"
+
+
+def halve_mass(c: dict[str, Any]) -> None:
+    c["design"]["mass_kg"] *= 0.5
+
+
 def drop_lower_bound(c: dict[str, Any]) -> None:
     del c["bounds"]["lower_bound_Nmm"]
 
@@ -86,6 +94,8 @@ TAMPERING = {
     "load changed": (change_load, {"upper bound"}),
     "budget shrunk": (shrink_budget, {"material budget", "lower bound"}),
     "field removed": (drop_lower_bound, {"schema"}),
+    "material id swapped": (swap_material_id, {"material"}),
+    "mass halved": (halve_mass, {"design summary"}),
 }
 
 
@@ -135,3 +145,27 @@ def test_command_line_verdict_and_exit_code(certificates: dict[str, dict[str, An
     done = run_checker_cli(bad)
     assert done.returncode == 1
     assert "FAIL" in done.stdout and "upper bound" in done.stdout
+
+
+def test_material_values_are_checked_against_a_library(
+        certificates: dict[str, dict[str, Any]]) -> None:
+    """A forger who doubles E and halves every bound keeps the certificate self-consistent;
+    only the material library can expose it."""
+    cert = copy.deepcopy(certificates["bracket"])
+    cert["material"]["youngs_modulus_MPa"] *= 2
+    for key in ("upper_bound_Nmm", "lower_bound_Nmm", "upper_bound_adjusted_Nmm",
+                "lower_bound_adjusted_Nmm"):
+        cert["bounds"][key] /= 2
+    cert["relaxed_design"]["relaxed_compliance_Nmm"] /= 2
+    library = REPO / "data" / "materials.json"
+    report = gdt_check.check(cert, material_library=library)
+    assert not report.passed
+    assert "material" in {c.name for c in report.checks if not c.passed}
+    assert gdt_check.check(certificates["bracket"], material_library=library).passed
+
+
+def test_report_says_when_material_values_were_not_verified(
+        certificates: dict[str, dict[str, Any]]) -> None:
+    report = gdt_check.check(certificates["bracket"])
+    material = next(c for c in report.checks if c.name == "material")
+    assert "not verified" in material.detail

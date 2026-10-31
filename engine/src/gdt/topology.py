@@ -6,8 +6,25 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-def components(solid: NDArray[np.bool_], nx: int, ny: int) -> NDArray[np.int64]:
-    """Label edge-connected groups of solid elements (-1 for empty elements)."""
+EDGE_STEPS = ((1, 0), (-1, 0), (0, 1), (0, -1))
+NODE_STEPS = EDGE_STEPS + ((1, 1), (1, -1), (-1, 1), (-1, -1))
+
+
+def neighbours(e: int, nx: int, ny: int, corners: bool = False) -> list[int]:
+    """Elements sharing an edge with element e (or also a corner node, if ``corners``)."""
+    i, j = e % nx, e // nx
+    out = []
+    for di, dj in (NODE_STEPS if corners else EDGE_STEPS):
+        a, b = i + di, j + dj
+        if 0 <= a < nx and 0 <= b < ny:
+            out.append(b * nx + a)
+    return out
+
+
+def components(solid: NDArray[np.bool_], nx: int, ny: int,
+               corners: bool = False) -> NDArray[np.int64]:
+    """Label connected groups of solid elements (-1 for empty elements). Elements connect
+    through shared edges, and also through shared corner nodes if ``corners``."""
     label = np.full(nx * ny, -1, dtype=np.int64)
     current = 0
     for start in np.flatnonzero(solid):
@@ -17,14 +34,10 @@ def components(solid: NDArray[np.bool_], nx: int, ny: int) -> NDArray[np.int64]:
         label[start] = current
         while stack:
             e = stack.pop()
-            i, j = e % nx, e // nx
-            for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                a, b = i + di, j + dj
-                if 0 <= a < nx and 0 <= b < ny:
-                    n = b * nx + a
-                    if solid[n] and label[n] < 0:
-                        label[n] = current
-                        stack.append(n)
+            for n in neighbours(e, nx, ny, corners):
+                if solid[n] and label[n] < 0:
+                    label[n] = current
+                    stack.append(n)
         current += 1
     return label
 

@@ -16,7 +16,7 @@ pip install -e engine -e checker
 
 ```
 gdt examples/bracket.json --out runs/bracket
-gdt-check runs/bracket/certificate.json
+gdt-check runs/bracket/certificate.json --materials data/materials.json
 ```
 
 `gdt` validates the setup, optimizes, and writes to the output folder:
@@ -28,7 +28,7 @@ gdt-check runs/bracket/certificate.json
 | `design.png` | The design with preserved regions, keep-out regions, supports and loads |
 | `design_grid.txt` | One line per element row (top row first), `1` = material |
 
-`gdt-check` reads only the certificate. It shares no code with the engine, and it exits with code 0 only if every claim is confirmed.
+`gdt-check` reads only the certificate (plus, optionally, the material library to verify the material values). It shares no code with the engine, and it exits with code 0 only if every claim is confirmed.
 
 ## Setup file
 
@@ -43,7 +43,7 @@ JSON, units mm / N / MPa. Origin bottom-left, y up. See [`examples/bracket.json`
 | `min_member_size_mm` | Filter radius of the optimizer |
 | `preserved_regions` | Rectangles that must stay solid (connections) |
 | `keep_out_regions` | Rectangles or circles that must stay empty |
-| `supports` | Rectangles (zero width/height for lines or points); `fix`: `x`, `y` or `xy` |
+| `supports` | Rectangles (zero width/height for lines or points); `fix`: `x`, `y` or `xy`. Nodes that touch only keep-out space are not supported; a support entirely inside keep-out regions is an error |
 | `load_cases` | `name`, `weight`, `loads` (limit loads): `point` (`x_mm`, `y_mm`, `fx_N`, `fy_N`) or `edge` (`edge`, `from_mm`, `to_mm`, total `fx_N`, `fy_N`) |
 | `settings` | Optional: `max_iterations`, `tolerance`, `factor_of_safety` (1.5), `fitting_factor` (1.15) |
 

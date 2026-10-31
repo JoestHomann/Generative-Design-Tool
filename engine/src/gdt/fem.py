@@ -17,6 +17,8 @@ from .setup import Problem
 
 FloatArray = NDArray[np.float64]
 
+MAX_RELATIVE_RESIDUAL = 1e-10  # required accuracy of every linear solve (spec)
+
 
 def element_stiffness(nu: float, thickness: float) -> FloatArray:
     """8x8 stiffness of a square element for E = 1 (multiply by the element's E).
@@ -62,7 +64,6 @@ def element_dofs(nx: int, ny: int) -> NDArray[np.int64]:
 class Solution:
     displacements: list[FloatArray]  # one full-length vector per load case
     max_relative_residual: float
-    unsupported_load: bool  # a load acts on a dof that no stiff element touches
 
 
 class Model:
@@ -87,7 +88,6 @@ class Model:
         touched = np.zeros(self.problem.n_dofs, dtype=bool)
         touched[self.dofs[element_modulus > 0].ravel()] = True
         free = np.flatnonzero(touched & ~self.problem.fixed)
-        unsupported = any(np.any(f[~touched] != 0) for f in self.forces)
         kff = k[free][:, free].tocsc()
         lu = spla.splu(kff, permc_spec="MMD_AT_PLUS_A", diag_pivot_thresh=0.0,
                        options={"SymmetricMode": True})
@@ -100,7 +100,7 @@ class Model:
             res = np.linalg.norm(kff @ uf - f[free]) / norm_f if norm_f > 0 else 0.0
             worst = max(worst, float(res))
             out.append(u)
-        return Solution(out, worst, unsupported)
+        return Solution(out, worst)
 
     def compliance(self, sol: Solution) -> float:
         return float(sum(w * f @ u for w, f, u in zip(self.weights, self.forces,
