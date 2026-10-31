@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gdt-check"
+version = "0.1.0"
+description = "Standalone checker for Generative Design Tool certificates. Shares no code with the engine."
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26", "scipy>=1.11"]
+
+[project.scripts]
+gdt-check = "gdt_check.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

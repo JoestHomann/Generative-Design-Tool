@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gdt-engine"
+version = "0.1.0"
+description = "Generative Design Tool: 2D topology optimization engine with certified optimality gap"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26", "scipy>=1.11"]
+
+[project.scripts]
+gdt = "gdt.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

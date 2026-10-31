@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "envelope": {
+    "width_mm": 180.0,
+    "height_mm": 90.0,
+    "thickness_mm": 4.0
+  },
+  "mesh": {
+    "nx": 90,
+    "ny": 45
+  },
+  "material": {
+    "id": "ti-6al-4v"
+  },
+  "material_budget": 0.35,
+  "min_member_size_mm": 4.0,
+  "preserved_regions": [
+    {
+      "shape": "rect",
+      "x_mm": 0.0,
+      "y_mm": 0.0,
+      "width_mm": 15.0,
+      "height_mm": 15.0
+    },
+    {
+      "shape": "rect",
+      "x_mm": 0.0,
+      "y_mm": 75.0,
+      "width_mm": 15.0,
+      "height_mm": 15.0
+    },
+    {
+      "shape": "rect",
+      "x_mm": 165.0,
+      "y_mm": 37.5,
+      "width_mm": 15.0,
+      "height_mm": 15.0
+    }
+  ],
+  "keep_out_regions": [
+    {
+      "shape": "circle",
+      "cx_mm": 90.0,
+      "cy_mm": 45.0,
+      "r_mm": 11.25
+    }
+  ],
+  "supports": [
+    {
+      "x_mm": 0.0,
+      "y_mm": 0.0,
+      "width_mm": 0.0,
+      "height_mm": 15.0,
+      "fix": "xy"
+    },
+    {
+      "x_mm": 0.0,
+      "y_mm": 75.0,
+      "width_mm": 0.0,
+      "height_mm": 15.0,
+      "fix": "xy"
+    }
+  ],
+  "load_cases": [
+    {
+      "name": "down",
+      "weight": 1.0,
+      "loads": [
+        {
+          "type": "point",
+          "x_mm": 180.0,
+          "y_mm": 45.0,
+          "fx_N": 0.0,
+          "fy_N": -3000.0
+        }
+      ]
+    },
+    {
+      "name": "outward",
+      "weight": 0.5,
+      "loads": [
+        {
+          "type": "point",
+          "x_mm": 180.0,
+          "y_mm": 45.0,
+          "fx_N": 2000.0,
+          "fy_N": 0.0
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "factor_of_safety": 1.5,
+    "fitting_factor": 1.15
+  }
+}

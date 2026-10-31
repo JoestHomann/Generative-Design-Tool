@@ -1,0 +1,11 @@
+[tool.pytest.ini_options]
+pythonpath = ["engine/src", "checker/src"]
+testpaths = ["tests"]
+markers = ["slow: long-running benchmark (run with -m slow)"]
+addopts = "-m 'not slow'"
+
+[tool.mypy]
+python_version = "3.11"
+files = ["engine/src", "checker/src"]
+strict = true
+ignore_missing_imports = true
