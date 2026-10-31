@@ -1,0 +1,682 @@
+{
+  "schema_version": 2,
+  "description": "Material library for the Generative Design Tool. Room-temperature values. Elastic constants and density come from MIL-HDBK-5J (consistent with the allowables), with SpringerMaterials (Landolt-Börnstein) values kept as an independent cross-check. Design allowables are MIL-HDBK-5J A/B/S-basis values; MIL-HDBK-5J is superseded by MMPDS and not valid for certification. 'default_allowable' indexes the entry the stress check uses unless the user picks another; the stress check uses the lower of the L and LT values.",
+  "units": {
+    "density": "kg/m^3",
+    "youngs_modulus": "GPa",
+    "poissons_ratio": "-",
+    "strength": "MPa (converted from ksi with 1 ksi = 6.894757 MPa)"
+  },
+  "sources": {
+    "LB-VIII-2C2-6": {
+      "citation": "Spittel, M.; Spittel, T.: Young's modulus of light metal alloys. In: Warlimont, H. (ed.), Landolt-Börnstein New Series VIII/2C2, Part 2: Non-ferrous Alloys - Light Metals. Springer, 2011.",
+      "doi": "10.1007/978-3-642-13864-5_6",
+      "url": "https://materials.springer.com/lb/docs/sm_lbs_978-3-642-13864-5_6",
+      "accessed": "2026-10-31",
+      "access": "SpringerMaterials via Universität Stuttgart Universitätsbibliothek"
+    },
+    "LB-VIII-2C2-36": {
+      "citation": "Spittel, M.; Spittel, T.: AlCu4Mg1. In: Warlimont, H. (ed.), Landolt-Börnstein New Series VIII/2C2, Part 2: Non-ferrous Alloys - Light Metals. Springer, 2011.",
+      "doi": "10.1007/978-3-642-13864-5_36",
+      "url": "https://materials.springer.com/lb/docs/sm_lbs_978-3-642-13864-5_36",
+      "accessed": "2026-10-31",
+      "access": "SpringerMaterials via Universität Stuttgart Universitätsbibliothek"
+    },
+    "LB-VIII-2C2-78": {
+      "citation": "Spittel, M.; Spittel, T.: AlZn5.5MgCu. In: Warlimont, H. (ed.), Landolt-Börnstein New Series VIII/2C2, Part 2: Non-ferrous Alloys - Light Metals. Springer, 2011.",
+      "doi": "10.1007/978-3-642-13864-5_78",
+      "url": "https://materials.springer.com/lb/docs/sm_lbs_978-3-642-13864-5_78",
+      "accessed": "2026-10-31",
+      "access": "SpringerMaterials via Universität Stuttgart Universitätsbibliothek"
+    },
+    "LB-VIII-2C2-91": {
+      "citation": "Spittel, M.; Spittel, T.: TiAl6V4. In: Warlimont, H. (ed.), Landolt-Börnstein New Series VIII/2C2, Part 2: Non-ferrous Alloys - Light Metals. Springer, 2011.",
+      "doi": "10.1007/978-3-642-13864-5_91",
+      "url": "https://materials.springer.com/lb/docs/sm_lbs_978-3-642-13864-5_91",
+      "accessed": "2026-10-31",
+      "access": "SpringerMaterials via Universität Stuttgart Universitätsbibliothek"
+    },
+    "LB-VIII-2C1-6": {
+      "citation": "Spittel, M.; Spittel, T.: 4.2 Young's modulus of steel. In: Warlimont, H. (ed.), Landolt-Börnstein New Series VIII/2C1, Metal Forming Data of Ferrous Alloys - deformation behaviour. Springer, 2009.",
+      "doi": "10.1007/978-3-540-44760-3_6",
+      "url": "https://materials.springer.com/lb/docs/sm_lbs_978-3-540-44760-3_6",
+      "accessed": "2026-10-31",
+      "access": "SpringerMaterials via Universität Stuttgart Universitätsbibliothek"
+    },
+    "LB-VIII-2C1-111": {
+      "citation": "Spittel, M.; Spittel, T.: Steel symbol/number: X5CrNiCuNb17-4-4/1.4548. In: Warlimont, H. (ed.), Landolt-Börnstein New Series VIII/2C1, Metal Forming Data of Ferrous Alloys - deformation behaviour. Springer, 2009.",
+      "doi": "10.1007/978-3-540-44760-3_111",
+      "url": "https://materials.springer.com/lb/docs/sm_lbs_978-3-540-44760-3_111",
+      "accessed": "2026-10-31",
+      "access": "SpringerMaterials via Universität Stuttgart Universitätsbibliothek"
+    },
+    "MIL-HDBK-5J": {
+      "citation": "MIL-HDBK-5J, Metallic Materials and Elements for Aerospace Vehicle Structures, U.S. Department of Defense, 31 January 2003. Cancelled; superseded by MMPDS. Not for certification use.",
+      "url": "https://everyspec.com/MIL-HDBK/MIL-HDBK-0001-0099/MIL_HDBK_5J_139/",
+      "accessed": "2026-10-31",
+      "access": "Public download (EverySpec)",
+      "status": "superseded"
+    },
+    "AddUp-AlSi10Mg": {
+      "citation": "AddUp: AlSi10Mg Material Data Sheet, version US-10252023-0129. Tests per ASTM E8, sample size at least 27 across the build plate.",
+      "url": "https://addupsolutions.com/wp-content/uploads/2023/10/AlSi10Mg-Material-Data-Sheet.pdf",
+      "accessed": "2026-10-31",
+      "access": "Public download"
+    },
+    "EOS-PDS-AlSi10Mg-M290-30": {
+      "citation": "EOS GmbH: Process Data Sheet, EOS Aluminium AlSi10Mg for EOS M 290, 30 µm (material set AlSi10Mg_FlexM291 2.01), status 30.10.2026. Tests per EN ISO 6892-1.",
+      "url": "https://www.eos.info/metal-solutions/data-sheets/aluminium/pds-eos-aluminium-alsi10mg-eos-m-290-30um",
+      "accessed": "2026-10-31",
+      "access": "Public web page"
+    }
+  },
+  "materials": [
+    {
+      "id": "ti-6al-4v",
+      "name": "Ti-6Al-4V",
+      "family": "titanium",
+      "designations": {
+        "DIN": "TiAl6V4 / 3.7164",
+        "UNS": "R56400",
+        "ASTM": "Grade 5",
+        "AMS": "4981"
+      },
+      "condition": "annealed (default); solution treated and aged also listed in source",
+      "density": {
+        "value": 4429,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 5.4.1.0(b), p. 5-53"
+      },
+      "youngs_modulus": {
+        "value": 110.3,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 5.4.1.0(b), p. 5-53 (tension modulus E)"
+      },
+      "poissons_ratio": {
+        "value": 0.31,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 5.4.1.0(b), p. 5-53"
+      },
+      "design_allowables": [
+        {
+          "table": "Table 5.4.1.0(b)",
+          "page": "5-53",
+          "product_form": "sheet",
+          "condition": "annealed",
+          "thickness_in": "<=0.1875",
+          "basis": "A",
+          "Ftu_L_ksi": 134,
+          "Ftu_LT_ksi": 134,
+          "Fty_L_ksi": 126,
+          "Fty_LT_ksi": 126,
+          "Ftu_L_MPa": 923.9,
+          "Ftu_LT_MPa": 923.9,
+          "Fty_L_MPa": 868.7,
+          "Fty_LT_MPa": 868.7,
+          "Ftu_min_MPa": 923.9,
+          "Fty_min_MPa": 868.7,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 5.4.1.0(b)",
+          "page": "5-53",
+          "product_form": "sheet",
+          "condition": "annealed",
+          "thickness_in": "<=0.1875",
+          "basis": "B",
+          "Ftu_L_ksi": 139,
+          "Ftu_LT_ksi": 139,
+          "Fty_L_ksi": 131,
+          "Fty_LT_ksi": 131,
+          "Ftu_L_MPa": 958.4,
+          "Ftu_LT_MPa": 958.4,
+          "Fty_L_MPa": 903.2,
+          "Fty_LT_MPa": 903.2,
+          "Ftu_min_MPa": 958.4,
+          "Fty_min_MPa": 903.2,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 5.4.1.0(b)",
+          "page": "5-53",
+          "product_form": "plate",
+          "condition": "annealed",
+          "thickness_in": "0.1875-2.000",
+          "basis": "A",
+          "Ftu_L_ksi": 130,
+          "Ftu_LT_ksi": 130,
+          "Fty_L_ksi": 120,
+          "Fty_LT_ksi": 120,
+          "Ftu_L_MPa": 896.3,
+          "Ftu_LT_MPa": 896.3,
+          "Fty_L_MPa": 827.4,
+          "Fty_LT_MPa": 827.4,
+          "Ftu_min_MPa": 896.3,
+          "Fty_min_MPa": 827.4,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 5.4.1.0(b)",
+          "page": "5-53",
+          "product_form": "plate",
+          "condition": "annealed",
+          "thickness_in": "0.1875-2.000",
+          "basis": "B",
+          "Ftu_L_ksi": 135,
+          "Ftu_LT_ksi": 138,
+          "Fty_L_ksi": 125,
+          "Fty_LT_ksi": 131,
+          "Ftu_L_MPa": 930.8,
+          "Ftu_LT_MPa": 951.5,
+          "Fty_L_MPa": 861.8,
+          "Fty_LT_MPa": 903.2,
+          "Ftu_min_MPa": 930.8,
+          "Fty_min_MPa": 861.8,
+          "source": "MIL-HDBK-5J"
+        }
+      ],
+      "elastic_constants_mil_hdbk_5j": {
+        "E_GPa": 110.3,
+        "Ec_GPa": 113.1,
+        "G_GPa": 42.7,
+        "poissons_ratio": 0.31,
+        "density_kg_m3": 4429,
+        "raw": {
+          "E_1e3ksi": 16.0,
+          "Ec_1e3ksi": 16.4,
+          "G_1e3ksi": 6.2,
+          "density_lb_in3": 0.16
+        },
+        "table": "Table 5.4.1.0(b)",
+        "page": "5-53",
+        "source": "MIL-HDBK-5J"
+      },
+      "cross_check_springermaterials": {
+        "density": {
+          "value": 4430,
+          "source": "LB-VIII-2C2-91",
+          "where": "Physical properties table, 20 °C"
+        },
+        "youngs_modulus": {
+          "value": 108,
+          "source": "LB-VIII-2C2-91",
+          "where": "Physical properties table, 20 °C"
+        },
+        "poissons_ratio": {
+          "value": 0.26,
+          "source": "LB-VIII-2C2-6",
+          "where": "Table 4.1, TiAl6V4, 20 °C",
+          "review_note": "SpringerMaterials gives 0.26; MIL-HDBK-5J gives 0.31. MIL-HDBK-5J value used."
+        }
+      },
+      "default_allowable": 2
+    },
+    {
+      "id": "al-7075-t6",
+      "name": "Aluminium 7075-T6",
+      "family": "aluminium",
+      "designations": {
+        "EN": "EN AW-7075 / AlZn5.5MgCu",
+        "Russia": "~V95"
+      },
+      "condition": "T6 sheet / T651 plate",
+      "density": {
+        "value": 2796,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 3.7.6.0(b), p. 3-371"
+      },
+      "youngs_modulus": {
+        "value": 71.0,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 3.7.6.0(b), p. 3-371 (tension modulus E)"
+      },
+      "poissons_ratio": {
+        "value": 0.33,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 3.7.6.0(b), p. 3-371"
+      },
+      "yield_strength_typical": {
+        "min": 460,
+        "max": 480,
+        "source": "LB-VIII-2C2-78",
+        "where": "Mechanical properties after cold deformation, state 'natural ageing - T6' (as labelled in source), initial state ε = 0"
+      },
+      "ultimate_strength_typical": {
+        "min": 540,
+        "max": 570,
+        "source": "LB-VIII-2C2-78",
+        "where": "Same table"
+      },
+      "design_allowables": [
+        {
+          "table": "Table 3.7.6.0(b)",
+          "page": "3-371",
+          "product_form": "sheet",
+          "condition": "T6 and T62",
+          "thickness_in": "0.126-0.249",
+          "basis": "A",
+          "Ftu_L_ksi": 78,
+          "Ftu_LT_ksi": 78,
+          "Fty_L_ksi": 71,
+          "Fty_LT_ksi": 69,
+          "Ftu_L_MPa": 537.8,
+          "Ftu_LT_MPa": 537.8,
+          "Fty_L_MPa": 489.5,
+          "Fty_LT_MPa": 475.7,
+          "Ftu_min_MPa": 537.8,
+          "Fty_min_MPa": 475.7,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 3.7.6.0(b)",
+          "page": "3-371",
+          "product_form": "sheet",
+          "condition": "T6 and T62",
+          "thickness_in": "0.126-0.249",
+          "basis": "B",
+          "Ftu_L_ksi": 80,
+          "Ftu_LT_ksi": 80,
+          "Fty_L_ksi": 73,
+          "Fty_LT_ksi": 71,
+          "Ftu_L_MPa": 551.6,
+          "Ftu_LT_MPa": 551.6,
+          "Fty_L_MPa": 503.3,
+          "Fty_LT_MPa": 489.5,
+          "Ftu_min_MPa": 551.6,
+          "Fty_min_MPa": 489.5,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 3.7.6.0(b)",
+          "page": "3-371",
+          "product_form": "plate",
+          "condition": "T651",
+          "thickness_in": "0.500-1.000",
+          "basis": "A",
+          "Ftu_L_ksi": 77,
+          "Ftu_LT_ksi": 78,
+          "Fty_L_ksi": 70,
+          "Fty_LT_ksi": 68,
+          "Ftu_L_MPa": 530.9,
+          "Ftu_LT_MPa": 537.8,
+          "Fty_L_MPa": 482.6,
+          "Fty_LT_MPa": 468.8,
+          "Ftu_min_MPa": 530.9,
+          "Fty_min_MPa": 468.8,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 3.7.6.0(b)",
+          "page": "3-371",
+          "product_form": "plate",
+          "condition": "T651",
+          "thickness_in": "0.500-1.000",
+          "basis": "B",
+          "Ftu_L_ksi": 79,
+          "Ftu_LT_ksi": 80,
+          "Fty_L_ksi": 72,
+          "Fty_LT_ksi": 70,
+          "Ftu_L_MPa": 544.7,
+          "Ftu_LT_MPa": 551.6,
+          "Fty_L_MPa": 496.4,
+          "Fty_LT_MPa": 482.6,
+          "Ftu_min_MPa": 544.7,
+          "Fty_min_MPa": 482.6,
+          "source": "MIL-HDBK-5J"
+        }
+      ],
+      "elastic_constants_mil_hdbk_5j": {
+        "E_GPa": 71.0,
+        "Ec_GPa": 73.1,
+        "G_GPa": 26.9,
+        "poissons_ratio": 0.33,
+        "density_kg_m3": 2796,
+        "raw": {
+          "E_1e3ksi": 10.3,
+          "Ec_1e3ksi": 10.6,
+          "G_1e3ksi": 3.9,
+          "density_lb_in3": 0.101
+        },
+        "table": "Table 3.7.6.0(b)",
+        "page": "3-371",
+        "source": "MIL-HDBK-5J",
+        "note": "Ec = 10.5e3 ksi for sheet, 10.6e3 ksi for plate"
+      },
+      "cross_check_springermaterials": {
+        "density": {
+          "value": 2810.3,
+          "source": "LB-VIII-2C2-78",
+          "where": "Physical properties table, 20 °C"
+        },
+        "youngs_modulus": {
+          "value": 71.3,
+          "source": "LB-VIII-2C2-78",
+          "where": "Physical properties table, 20 °C"
+        },
+        "poissons_ratio": {
+          "value": 0.345,
+          "source": "LB-VIII-2C2-6",
+          "where": "Table 4.1, 'aluminium', 20 °C",
+          "review_note": "Value given for aluminium in general, not specifically for 7075."
+        }
+      },
+      "default_allowable": 2
+    },
+    {
+      "id": "al-2024-t3",
+      "name": "Aluminium 2024-T3",
+      "family": "aluminium",
+      "designations": {
+        "EN": "EN AW-2024 / AlCu4Mg1",
+        "Japan": "A2024"
+      },
+      "condition": "T3 sheet / T351 plate",
+      "density": {
+        "value": 2768,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 3.2.3.0(b), p. 3-71"
+      },
+      "youngs_modulus": {
+        "value": 72.4,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 3.2.3.0(b), p. 3-71 (tension modulus E)"
+      },
+      "poissons_ratio": {
+        "value": 0.33,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 3.2.3.0(b), p. 3-71"
+      },
+      "yield_strength_typical": {
+        "min": 270,
+        "max": 310,
+        "source": "LB-VIII-2C2-36",
+        "where": "Mechanical properties after cold deformation, state 'hot tempered - T3', initial state ε = 0"
+      },
+      "ultimate_strength_typical": {
+        "min": 425,
+        "max": 450,
+        "source": "LB-VIII-2C2-36",
+        "where": "Same table"
+      },
+      "design_allowables": [
+        {
+          "table": "Table 3.2.3.0(b)",
+          "page": "3-71",
+          "product_form": "sheet",
+          "condition": "T3",
+          "thickness_in": "0.129-0.249",
+          "basis": "A",
+          "Ftu_L_ksi": 65,
+          "Ftu_LT_ksi": 64,
+          "Fty_L_ksi": 47,
+          "Fty_LT_ksi": 42,
+          "Ftu_L_MPa": 448.2,
+          "Ftu_LT_MPa": 441.3,
+          "Fty_L_MPa": 324.1,
+          "Fty_LT_MPa": 289.6,
+          "Ftu_min_MPa": 441.3,
+          "Fty_min_MPa": 289.6,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 3.2.3.0(b)",
+          "page": "3-71",
+          "product_form": "sheet",
+          "condition": "T3",
+          "thickness_in": "0.129-0.249",
+          "basis": "B",
+          "Ftu_L_ksi": 66,
+          "Ftu_LT_ksi": 65,
+          "Fty_L_ksi": 48,
+          "Fty_LT_ksi": 43,
+          "Ftu_L_MPa": 455.1,
+          "Ftu_LT_MPa": 448.2,
+          "Fty_L_MPa": 330.9,
+          "Fty_LT_MPa": 296.5,
+          "Ftu_min_MPa": 448.2,
+          "Fty_min_MPa": 296.5,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 3.2.3.0(b)",
+          "page": "3-71",
+          "product_form": "plate",
+          "condition": "T351",
+          "thickness_in": "0.500-1.000",
+          "basis": "A",
+          "Ftu_L_ksi": 63,
+          "Ftu_LT_ksi": 63,
+          "Fty_L_ksi": 48,
+          "Fty_LT_ksi": 42,
+          "Ftu_L_MPa": 434.4,
+          "Ftu_LT_MPa": 434.4,
+          "Fty_L_MPa": 330.9,
+          "Fty_LT_MPa": 289.6,
+          "Ftu_min_MPa": 434.4,
+          "Fty_min_MPa": 289.6,
+          "source": "MIL-HDBK-5J"
+        },
+        {
+          "table": "Table 3.2.3.0(b)",
+          "page": "3-71",
+          "product_form": "plate",
+          "condition": "T351",
+          "thickness_in": "0.500-1.000",
+          "basis": "B",
+          "Ftu_L_ksi": 65,
+          "Ftu_LT_ksi": 65,
+          "Fty_L_ksi": 50,
+          "Fty_LT_ksi": 44,
+          "Ftu_L_MPa": 448.2,
+          "Ftu_LT_MPa": 448.2,
+          "Fty_L_MPa": 344.7,
+          "Fty_LT_MPa": 303.4,
+          "Ftu_min_MPa": 448.2,
+          "Fty_min_MPa": 303.4,
+          "source": "MIL-HDBK-5J"
+        }
+      ],
+      "elastic_constants_mil_hdbk_5j": {
+        "E_GPa": 72.4,
+        "Ec_GPa": 73.8,
+        "G_GPa": 27.6,
+        "poissons_ratio": 0.33,
+        "density_kg_m3": 2768,
+        "raw": {
+          "E_1e3ksi": 10.5,
+          "Ec_1e3ksi": 10.7,
+          "G_1e3ksi": 4.0,
+          "density_lb_in3": 0.1
+        },
+        "table": "Table 3.2.3.0(b)",
+        "page": "3-71",
+        "source": "MIL-HDBK-5J",
+        "note": "E = 10.5e3 ksi (T3 sheet), 10.7e3 ksi (T351 plate); Ec = 10.7e3 / 10.9e3 ksi"
+      },
+      "cross_check_springermaterials": {
+        "density": {
+          "value": 2778.1,
+          "source": "LB-VIII-2C2-36",
+          "where": "Physical properties table, 20 °C"
+        },
+        "youngs_modulus": {
+          "value": 73.8,
+          "source": "LB-VIII-2C2-36",
+          "where": "Physical properties table, 20 °C"
+        },
+        "poissons_ratio": {
+          "value": 0.345,
+          "source": "LB-VIII-2C2-6",
+          "where": "Table 4.1, AlCu4Mg2, 20 °C",
+          "review_note": "Value listed for AlCu4Mg2, the closest alloy in the table to AlCu4Mg1 (2024)."
+        }
+      },
+      "default_allowable": 2
+    },
+    {
+      "id": "ss-17-4ph",
+      "name": "Stainless steel 17-4PH",
+      "family": "steel",
+      "designations": {
+        "DIN": "X5CrNiCuNb17-4-4 / 1.4548",
+        "UNS": "S17400",
+        "AISI": "630",
+        "AMS": "5604E, 5622D",
+        "AECMA": "FE-PM 61"
+      },
+      "condition": "H1025 (default); H900 also recorded",
+      "density": {
+        "value": 7833,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 2.6.9.0(b), p. 2-197"
+      },
+      "youngs_modulus": {
+        "value": 196.5,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 2.6.9.0(b), p. 2-197 (tension modulus E)"
+      },
+      "poissons_ratio": {
+        "value": 0.27,
+        "source": "MIL-HDBK-5J",
+        "where": "Table 2.6.9.0(b), p. 2-197"
+      },
+      "design_allowables": [
+        {
+          "table": "Table 2.6.9.0(b)",
+          "page": "2-197",
+          "product_form": "sheet, strip and plate",
+          "condition": "H1025",
+          "thickness_in": "<=4.000",
+          "basis": "S",
+          "Ftu_L_ksi": null,
+          "Ftu_LT_ksi": 155,
+          "Fty_L_ksi": null,
+          "Fty_LT_ksi": 145,
+          "Ftu_L_MPa": null,
+          "Ftu_LT_MPa": 1068.7,
+          "Fty_L_MPa": null,
+          "Fty_LT_MPa": 999.7,
+          "Ftu_min_MPa": 1068.7,
+          "Fty_min_MPa": 999.7,
+          "source": "MIL-HDBK-5J",
+          "note": "Only LT values listed; test direction L for widths < 9 in, LT for widths >= 9 in."
+        },
+        {
+          "table": "Table 2.6.9.0(b)",
+          "page": "2-197",
+          "product_form": "sheet, strip and plate",
+          "condition": "H900",
+          "thickness_in": "<=4.000",
+          "basis": "S",
+          "Ftu_L_ksi": null,
+          "Ftu_LT_ksi": 190,
+          "Fty_L_ksi": null,
+          "Fty_LT_ksi": 170,
+          "Ftu_L_MPa": null,
+          "Ftu_LT_MPa": 1310.0,
+          "Fty_L_MPa": null,
+          "Fty_LT_MPa": 1172.1,
+          "Ftu_min_MPa": 1310.0,
+          "Fty_min_MPa": 1172.1,
+          "source": "MIL-HDBK-5J",
+          "note": "Only LT values listed; test direction L for widths < 9 in, LT for widths >= 9 in."
+        }
+      ],
+      "elastic_constants_mil_hdbk_5j": {
+        "E_GPa": 196.5,
+        "Ec_GPa": 206.8,
+        "G_GPa": 77.2,
+        "poissons_ratio": 0.27,
+        "density_kg_m3": 7833,
+        "raw": {
+          "E_1e3ksi": 28.5,
+          "Ec_1e3ksi": 30.0,
+          "G_1e3ksi": 11.2,
+          "density_lb_in3": 0.283
+        },
+        "table": "Table 2.6.9.0(b)",
+        "page": "2-197",
+        "source": "MIL-HDBK-5J",
+        "note": "Density given as 0.282 (H900), 0.283 (H1075), 0.284 (H1150) lb/in^3; 0.283 used for H1025."
+      },
+      "cross_check_springermaterials": {
+        "density": {
+          "value": 7791.3,
+          "source": "LB-VIII-2C1-111",
+          "where": "Physical properties table, 20 °C"
+        },
+        "youngs_modulus": {
+          "value": 196.1,
+          "source": "LB-VIII-2C1-111",
+          "where": "Physical properties table, 20 °C"
+        },
+        "poissons_ratio": {
+          "value": 0.294,
+          "source": "LB-VIII-2C1-6",
+          "where": "Table 4.1, 'stainless steel', 17 °C",
+          "review_note": "Value for stainless steel in general, not specifically for 17-4PH."
+        }
+      },
+      "default_allowable": 0
+    },
+    {
+      "id": "alsi10mg-am",
+      "name": "AlSi10Mg (additively manufactured)",
+      "family": "aluminium",
+      "designations": {
+        "EN": "EN AC-43000 (cast equivalent)"
+      },
+      "condition": "laser powder-bed fusion, stress relieved (default)",
+      "density": {
+        "value": 2670,
+        "source": "AddUp-AlSi10Mg",
+        "where": "Theoretical density (literature value); typical relative density 99.5 %"
+      },
+      "youngs_modulus": {
+        "value": 77,
+        "source": "AddUp-AlSi10Mg",
+        "where": "Stress relieved, horizontal (XY) 77±4 GPa; vertical (Z) 79±7 GPa. Lower value used."
+      },
+      "poissons_ratio": {
+        "value": 0.33,
+        "source": "MIL-HDBK-5J",
+        "where": "Not given in AM datasheets; wrought aluminium value (Tables 3.2.3.0(b), 3.7.6.0(b)) used as stand-in.",
+        "review_note": "Replace with a measured value for AlSi10Mg when available."
+      },
+      "design_allowables": null,
+      "strength_typical": [
+        {
+          "source": "AddUp-AlSi10Mg",
+          "condition": "stress relieved",
+          "orientation": "XY",
+          "Rp02_MPa": 232,
+          "Rm_MPa": 363,
+          "scatter": "±2 / ±7"
+        },
+        {
+          "source": "AddUp-AlSi10Mg",
+          "condition": "stress relieved",
+          "orientation": "Z",
+          "Rp02_MPa": 230,
+          "Rm_MPa": 396,
+          "scatter": "±6 / ±20"
+        },
+        {
+          "source": "EOS-PDS-AlSi10Mg-M290-30",
+          "condition": "T6 (530 °C 30 min, WQ; 165 °C 6 h)",
+          "orientation": "horizontal",
+          "Rp02_MPa": 260,
+          "Rm_MPa": 320
+        },
+        {
+          "source": "EOS-PDS-AlSi10Mg-M290-30",
+          "condition": "T6 (530 °C 30 min, WQ; 165 °C 6 h)",
+          "orientation": "vertical",
+          "Rp02_MPa": 250,
+          "Rm_MPa": 310
+        }
+      ],
+      "allowables_note": "No handbook design allowables exist for AM AlSi10Mg in MIL-HDBK-5J. The stress check must use a project-defined knock-down on the typical values until qualified data exists."
+    }
+  ]
+}
